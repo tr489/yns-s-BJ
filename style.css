@@ -1,202 +1,160 @@
-/* --- Grundlegende Einstellungen --- */
-* {
-    box-sizing: border-box; /* Wichtig für korrekte Größenberechnung */
-}
-
+* { box-sizing: border-box; }
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #202020; /* Dunkler Hintergrund um den Tisch */
+    font-family: 'Arial', sans-serif;
+    background-color: #1a1a1a;
     color: white;
     margin: 0;
-    padding: 20px;
     display: flex;
     justify-content: center;
     min-height: 100vh;
 }
 
-.game-container {
-    width: 100%;
-    max-width: 900px; /* Begrenzte Breite für Desktop */
-    text-align: center;
-}
+.game-container { width: 100%; max-width: 900px; text-align: center; }
 
-/* --- Header --- */
-header h1 {
-    color: #ffd700; /* Goldene Farbe für den Titel */
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
-}
-
-#message-area {
-    background-color: #333;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    border: 1px solid #555;
-    font-weight: bold;
-    min-height: 45px; /* Damit es nicht springt, wenn leer */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* --- Der Spieltisch (Grüner Filz) --- */
+/* Tisch Styling */
 .table {
-    background-color: #2e7d32; /* Klassisches Casino-Grün */
-    border: 10px solid #4e342e; /* Holzrahmen Optik */
-    border-radius: 50px; /* Runde Ecken für den Tisch */
-    padding: 30px;
-    margin-bottom: 20px;
+    background-color: #2e7d32;
+    border: 15px solid #4e342e;
+    border-radius: 100px;
+    padding: 20px;
+    min-height: 500px;
     position: relative;
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.5); /* Schatten innen für Tiefe */
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 400px;
-}
-
-/* Bereiche für Dealer und Spieler */
-.dealer-section, .player-section {
-    padding: 10px;
 }
 
 .cards-container {
     display: flex;
     justify-content: center;
-    gap: 10px; /* Abstand zwischen den Karten */
-    min-height: 120px; /* Platzhalterhöhe */
-    margin-top: 10px;
+    height: 130px; /* Feste Höhe damit nichts springt */
+    gap: 10px; /* Karten überlappen sich leicht für realistischeren Look */
 }
 
-/* --- Kartendesign (CSS-Only) --- */
-/* Das simuliert eine Karte, falls wir keine Bilder haben */
+/* KARTEN */
 .card {
     width: 80px;
     height: 115px;
-    background-color: white;
+    background: white;
     color: black;
-    border-radius: 8px;
+    border-radius: 6px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.5rem;
     font-weight: bold;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    font-size: 1.2rem;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
     position: relative;
+    /* Animation Startpunkt */
+    opacity: 0; 
+    transform: translateY(-50px) scale(0.8);
+    animation: deal-anim 0.4s forwards ease-out;
 }
 
-/* Rote Karten */
-.card.red {
-    color: #d32f2f;
+/* Animations-Definition: Karte fliegt rein */
+@keyframes deal-anim {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
-/* Schwarze Karten */
-.card.black {
-    color: #000;
-}
-
-/* Verdeckte Karte (Rückseite) */
+.card.red { color: #d32f2f; }
 .card.back {
-    background-color: #b71c1c;
-    background-image: repeating-linear-gradient(
-        45deg,
-        #b71c1c,
-        #b71c1c 10px,
-        #c62828 10px,
-        #c62828 20px
-    );
+    background: repeating-linear-gradient(45deg, #b71c1c, #b71c1c 5px, #d32f2f 5px, #d32f2f 10px);
+    border: 2px solid #fff;
     color: transparent;
-    border: 2px solid white;
 }
 
-/* --- Wett-Interface --- */
-.betting-controls {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #444;
-}
-
-.bet-inputs {
+/* WETTFELDER (Spots) */
+.betting-spots {
     display: flex;
     justify-content: center;
     gap: 20px;
-    flex-wrap: wrap; /* Umbruch auf kleinen Handys */
-    margin-bottom: 20px;
+    margin-top: 20px;
+    padding-bottom: 20px;
 }
 
-.input-group {
+.bet-spot {
+    width: 90px;
+    height: 90px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 140px;
-}
-
-.input-group label {
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-
-/* Hervorhebung der Sidebets */
-.input-group.sidebet label {
-    color: #ffd700; /* Gold für Sidebets */
-}
-
-.input-group small {
-    font-size: 0.7rem;
-    color: #aaa;
-    margin-top: 3px;
-}
-
-input[type="number"] {
-    padding: 8px;
-    border-radius: 5px;
-    border: none;
-    text-align: center;
-    font-size: 1.1rem;
-    width: 100%;
-}
-
-/* --- Buttons --- */
-.action-btn {
-    padding: 12px 24px;
-    font-size: 1rem;
-    font-weight: bold;
+    justify-content: center;
     cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.bet-spot:hover { background-color: rgba(255,255,255,0.1); }
+.bet-spot.main-spot { border-color: #ffd700; width: 110px; height: 110px; } /* Hauptwette größer */
+
+.spot-label { font-size: 0.8rem; color: #ddd; margin-bottom: 5px; pointer-events: none; }
+.bet-value { font-weight: bold; color: #ffd700; pointer-events: none; }
+
+/* CHIPS DESIGN */
+.chip {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 4px dashed white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s;
+}
+
+.chip:active { transform: scale(0.9); }
+.chip.selected { transform: scale(1.1); box-shadow: 0 0 10px yellow; }
+
+.chip-5 { background-color: #d32f2f; } /* Rot */
+.chip-10 { background-color: #1976d2; } /* Blau */
+.chip-25 { background-color: #388e3c; } /* Grün */
+.chip-100 { background-color: #212121; border-color: #ffd700; } /* Schwarz */
+
+/* Mini-Chip auf dem Tisch */
+.chip-stack .chip-mini {
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
+    border-width: 2px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* UI CONTROLS UNTEN */
+.controls-area {
+    background-color: #222;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+.chip-rack p { margin: 0 0 10px 0; font-size: 0.9rem; color: #aaa; }
+.chips-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; }
+
+.action-btn {
+    padding: 12px 30px;
+    font-size: 1rem;
     border: none;
     border-radius: 5px;
-    transition: background-color 0.2s;
-    margin: 0 5px;
+    cursor: pointer;
+    font-weight: bold;
 }
+.primary { background-color: #ffd700; color: black; }
+.danger { background-color: #d32f2f; color: white; margin-right: 10px; }
+.hit-btn { background-color: #4caf50; color: white; width: 120px; }
+.stand-btn { background-color: #f44336; color: white; width: 120px; }
 
-/* Primäre Aktion (Deal, Next Round) */
-.action-btn.primary {
-    background-color: #ffd700;
-    color: black;
-    width: 100%;
-    max-width: 300px;
-    margin-top: 10px;
-}
-
-.action-btn.primary:hover {
-    background-color: #ffea00;
-}
-
-/* Spiel-Buttons (Hit/Stand) */
-#btn-hit {
-    background-color: #4caf50; /* Grün */
-    color: white;
-}
-#btn-hit:hover { background-color: #45a049; }
-
-#btn-stand {
-    background-color: #f44336; /* Rot */
-    color: white;
-}
-#btn-stand:hover { background-color: #d32f2f; }
-
-/* --- Hilfsklassen --- */
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
