@@ -24,14 +24,13 @@ const inputMain = document.getElementById('bet-main');
 const inputPairs = document.getElementById('bet-pairs');
 const input21Plus3 = document.getElementById('bet-21plus3');
 
-/* --- Event Listeners --- */
+/* --- Event Listeners (Aktualisiert) --- */
 document.getElementById('btn-deal').addEventListener('click', startRound);
 document.getElementById('btn-next-round').addEventListener('click', resetGameUI);
 
-// (Hit und Stand fügen wir im nächsten Schritt hinzu, 
-// aber die Listener bereiten wir schon vor, damit keine Fehler kommen)
-document.getElementById('btn-hit').addEventListener('click', () => alert("Hit kommt gleich!"));
-document.getElementById('btn-stand').addEventListener('click', () => alert("Stand kommt gleich!"));
+// JETZT verbinden wir die echten Funktionen
+document.getElementById('btn-hit').addEventListener('click', onHit);
+document.getElementById('btn-stand').addEventListener('click', onStand);
 
 
 /* --- Deck Funktionen --- */
