@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Pro - Mit Sidebets</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <header>
+            <h1>Blackjack Pro</h1>
+            <div id="message-area">Plaziere deine Wetten, um zu beginnen!</div>
+        </header>
+
+        <div class="table">
+            
+            <div class="dealer-section">
+                <h2>Dealer <span id="dealer-score">0</span></h2>
+                <div id="dealer-cards" class="cards-container">
+                    </div>
+            </div>
+
+            <div class="center-table">
+                <div class="deck-placeholder">Deck</div>
+            </div>
+
+            <div class="player-section">
+                <h2>Spieler <span id="player-score">0</span></h2>
+                <div id="player-cards" class="cards-container">
+                    </div>
+                <div id="player-money">Guthaben: 1000 €</div>
+            </div>
+
+        </div>
+
+        <div class="betting-controls" id="betting-panel">
+            <h3>Einsätze platzieren</h3>
+            
+            <div class="bet-inputs">
+                <div class="input-group">
+                    <label for="bet-main">Hauptwette (€):</label>
+                    <input type="number" id="bet-main" min="10" step="10" value="10">
+                </div>
+
+                <div class="input-group sidebet">
+                    <label for="bet-pairs">Perfect Pairs (€):</label>
+                    <input type="number" id="bet-pairs" min="0" step="5" value="0">
+                    <small>Paar, Farben-Paar, Perfektes Paar</small>
+                </div>
+
+                <div class="input-group sidebet">
+                    <label for="bet-21plus3">21+3 / Poker (€):</label>
+                    <input type="number" id="bet-21plus3" min="0" step="5" value="0">
+                    <small>Flush, Straße, Drilling, etc.</small>
+                </div>
+            </div>
+
+            <button id="btn-deal" class="action-btn primary">Austeilen</button>
+        </div>
+
+        <div class="game-actions hidden" id="action-panel">
+            <button id="btn-hit" class="action-btn">Karte (Hit)</button>
+            <button id="btn-stand" class="action-btn">Keine Karte (Stand)</button>
+            </div>
+        
+        <div class="reset-section hidden" id="reset-panel">
+            <button id="btn-next-round" class="action-btn primary">Nächste Runde</button>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
