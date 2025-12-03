@@ -24,11 +24,9 @@ const inputMain = document.getElementById('bet-main');
 const inputPairs = document.getElementById('bet-pairs');
 const input21Plus3 = document.getElementById('bet-21plus3');
 
-/* --- Event Listeners (Aktualisiert) --- */
+/* --- Event Listeners --- */
 document.getElementById('btn-deal').addEventListener('click', startRound);
 document.getElementById('btn-next-round').addEventListener('click', resetGameUI);
-
-// JETZT verbinden wir die echten Funktionen
 document.getElementById('btn-hit').addEventListener('click', onHit);
 document.getElementById('btn-stand').addEventListener('click', onStand);
 
@@ -41,7 +39,7 @@ function createDeck() {
     for (let i = 0; i < 6; i++) {
         for (let suit of suits) {
             for (let value of values) {
-                // Gewichtung: Bildkarten = 10, Ass = 11 (erstmal)
+                // Gewichtung: Bildkarten = 10, Ass = 11
                 let weight = parseInt(value);
                 if (value === 'J' || value === 'Q' || value === 'K') weight = 10;
                 if (value === 'A') weight = 11;
@@ -98,11 +96,11 @@ function startRound() {
     // 4. UI aktualisieren
     renderTable(false); // false = Dealer Karte noch verdeckt
 
-    // 5. SIDEBETS Auswerten (Das Herzstück!)
+    // 5. SIDEBETS Auswerten
     let winnings = 0;
     let messages = [];
 
-    // Check Perfect Pairs (Nur Spielerkarten)
+    // Check Perfect Pairs
     if (betPairs > 0) {
         const winPairs = checkPerfectPairs(playersHand[0], playersHand[1], betPairs);
         if (winPairs > 0) {
@@ -111,10 +109,8 @@ function startRound() {
         }
     }
 
-    // Check 21+3 (Spieler Karten + Dealer offene Karte)
+    // Check 21+3
     if (bet213 > 0) {
-        // Dealer offene Karte ist die zweite (Index 1) in unserem Array,
-        // oder die erste, je nachdem wie man dealt. Wir nehmen hier dealersHand[1] als offene.
         const win213 = check21Plus3(playersHand[0], playersHand[1], dealersHand[1], bet213);
         if (win213 > 0) {
             winnings += win213;
@@ -122,50 +118,51 @@ function startRound() {
         }
     }
 
-    // Gewinne auszahlen
+    // Sidebet Gewinne auszahlen
     if (winnings > 0) {
         playerMoney += winnings;
         updateMoneyDisplay();
-        setTimeout(() => alert(messages.join("\n")), 500); // Kleines Delay für Effekt
+        setTimeout(() => alert(messages.join("\n")), 500);
     }
 
     // Interface umschalten
     bettingPanel.classList.add('hidden');
-    actionPanel.classList.remove('hidden');
-    messageEl.innerText = "Wähle: Karte (Hit) oder Keine Karte (Stand)?";
+    
+    // -- NEU: Check auf sofortiges Blackjack (21) --
+    const startScore = calculateHandValue(playersHand);
+    if (startScore === 21) {
+        // Sofort gewonnen (Blackjack Pays 3:2)
+        // Wir simulieren hier, dass der Dealer KEIN Blackjack hat.
+        renderTable(true); // Dealer aufdecken
+        endRound("BLACKJACK");
+    } else {
+        // Normal weiterspielen
+        actionPanel.classList.remove('hidden');
+        messageEl.innerText = "Wähle: Karte (Hit) oder Keine Karte (Stand)?";
+    }
 }
 
 /* --- Sidebet Logik --- */
 
 function checkPerfectPairs(card1, card2, bet) {
-    // Wenn Werte nicht gleich sind, verloren
     if (card1.value !== card2.value) return 0;
 
-    // Werte sind gleich. Jetzt Farbe und Suit prüfen.
-    
-    // 1. Perfect Pair (Identischer Suit, z.B. Herz Ass & Herz Ass)
-    if (card1.suit === card2.suit) {
-        return bet * 25; // Auszahlung 25:1
-    }
+    // 1. Perfect Pair (Identischer Suit)
+    if (card1.suit === card2.suit) return bet * 25;
 
-    // 2. Coloured Pair (Gleiche Farbe, aber diff Suit, z.B. Herz & Karo)
+    // 2. Coloured Pair (Gleiche Farbe rot/schwarz)
     const isRed1 = (card1.suit === 'H' || card1.suit === 'D');
     const isRed2 = (card2.suit === 'H' || card2.suit === 'D');
     
-    if (isRed1 === isRed2) {
-        return bet * 12; // Auszahlung 12:1
-    }
+    if (isRed1 === isRed2) return bet * 12;
 
-    // 3. Mixed Pair (Verschiedene Farben, z.B. Herz & Pik)
-    return bet * 6; // Auszahlung 6:1 (oft auch 5:1)
+    // 3. Mixed Pair
+    return bet * 6;
 }
 
 function check21Plus3(p1, p2, d1, bet) {
-    // Wir brauchen 3 Karten für Poker-Logik
     const hand = [p1, p2, d1];
     
-    // Hilfsfunktion: Sortiere nach Wert für Straße
-    // Wir müssen J,Q,K,A in Zahlen umwandeln für den Vergleich
     const getRank = (c) => {
         if (c.value === 'J') return 11;
         if (c.value === 'Q') return 12;
@@ -177,38 +174,25 @@ function check21Plus3(p1, p2, d1, bet) {
     const ranks = hand.map(getRank).sort((a, b) => a - b);
     const suits = hand.map(c => c.suit);
 
-    // Prüfungen (Reihenfolge wichtig: Höchster Gewinn zuerst!)
+    // 1. Suited Trips
+    if (ranks[0] === ranks[2] && suits[0] === suits[1] && suits[1] === suits[2]) return bet * 100;
 
-    // 1. Suited Trips (3 gleiche Karten, gleicher Suit) - Geht nur bei 6 Decks!
-    if (ranks[0] === ranks[2] && suits[0] === suits[1] && suits[1] === suits[2]) {
-        return bet * 100;
-    }
-
-    // 2. Straight Flush (Straße in einer Farbe)
+    // 2. Straight Flush
     const isFlush = (suits[0] === suits[1] && suits[1] === suits[2]);
     const isStraight = (ranks[0] + 1 === ranks[1] && ranks[1] + 1 === ranks[2]);
-    // Sonderfall Ass-2-3? (Hier vereinfacht: A ist 14, also nur Q-K-A Straight)
     
-    if (isFlush && isStraight) {
-        return bet * 40;
-    }
+    if (isFlush && isStraight) return bet * 40;
 
-    // 3. Three of a Kind (Drilling)
-    if (ranks[0] === ranks[2]) {
-        return bet * 30;
-    }
+    // 3. Three of a Kind
+    if (ranks[0] === ranks[2]) return bet * 30;
 
-    // 4. Straight (Straße)
-    if (isStraight) {
-        return bet * 10;
-    }
+    // 4. Straight
+    if (isStraight) return bet * 10;
 
-    // 5. Flush (Gleiche Farbe)
-    if (isFlush) {
-        return bet * 5;
-    }
+    // 5. Flush
+    if (isFlush) return bet * 5;
 
-    return 0; // Verloren
+    return 0;
 }
 
 /* --- UI Funktionen --- */
@@ -222,14 +206,12 @@ function renderCard(card, isHidden = false) {
         return el;
     }
 
-    // Farbe setzen
     if (card.suit === 'H' || card.suit === 'D') {
         el.classList.add('red');
     } else {
         el.classList.add('black');
     }
 
-    // Symbol bestimmen
     let suitSymbol = '';
     if (card.suit === 'H') suitSymbol = '♥';
     if (card.suit === 'D') suitSymbol = '♦';
@@ -241,26 +223,19 @@ function renderCard(card, isHidden = false) {
 }
 
 function renderTable(showDealerFull) {
-    // Bereiche leeren
     dealerCardsEl.innerHTML = '';
     playerCardsEl.innerHTML = '';
 
-    // Spieler Karten rendern
-    playersHand.forEach(card => {
-        playerCardsEl.appendChild(renderCard(card));
-    });
+    playersHand.forEach(card => playerCardsEl.appendChild(renderCard(card)));
 
-    // Dealer Karten rendern
     dealersHand.forEach((card, index) => {
         if (index === 0 && !showDealerFull) {
-            // Erste Karte verdeckt
             dealerCardsEl.appendChild(renderCard(card, true));
         } else {
             dealerCardsEl.appendChild(renderCard(card));
         }
     });
 
-    // Score berechnen (Einfache Version für Anzeige)
     updateScores(showDealerFull);
 }
 
@@ -273,7 +248,6 @@ function calculateHandValue(hand) {
         if (card.value === 'A') aces++;
     }
 
-    // Asse behandeln (von 11 auf 1 reduzieren wenn über 21)
     while (sum > 21 && aces > 0) {
         sum -= 10;
         aces--;
@@ -289,9 +263,6 @@ function updateScores(showDealerFull) {
         const dScore = calculateHandValue(dealersHand);
         dealerScoreEl.innerText = dScore;
     } else {
-        // Zeige nur Wert der offenen Karte
-        // Achtung: Wir haben oben dealersHand[1] als offen definiert
-        // Muss zur Logik passen: weight der 2. Karte
         dealerScoreEl.innerText = dealersHand[1].weight; 
     }
 }
@@ -312,29 +283,20 @@ function resetGameUI() {
     messageEl.innerText = "Plaziere neue Wetten!";
 }
 
-// Initialer Aufruf um Deck zu haben
-createDeck();
-shuffleDeck();
 /* --- Spiel-Aktionen (Hit & Stand) --- */
 
 function onHit() {
-    // 1. Karte ziehen
     const newCard = deck.pop();
     playersHand.push(newCard);
-    
-    // 2. Tisch neu zeichnen (Dealer bleibt verdeckt)
     renderTable(false);
 
-    // 3. Prüfen ob überkauft (> 21)
     const score = calculateHandValue(playersHand);
     if (score > 21) {
-        endRound("BUST"); // Spieler hat verloren
+        endRound("BUST");
     }
 }
 
 function onStand() {
-    // Dealer ist dran!
-    // Regel: Dealer muss ziehen, bis er 17 oder mehr hat.
     let dealerScore = calculateHandValue(dealersHand);
 
     while (dealerScore < 17) {
@@ -342,8 +304,7 @@ function onStand() {
         dealerScore = calculateHandValue(dealersHand);
     }
 
-    // Spiel beenden und Gewinner prüfen
-    renderTable(true); // Jetzt zeigen wir alle Karten des Dealers
+    renderTable(true);
     determineWinner();
 }
 
@@ -352,25 +313,22 @@ function onStand() {
 function determineWinner() {
     const pScore = calculateHandValue(playersHand);
     const dScore = calculateHandValue(dealersHand);
-
     let result = "";
 
-    // Szenarien prüfen
     if (dScore > 21) {
-        result = "DEALER_BUST"; // Dealer überkauft, Spieler gewinnt
+        result = "DEALER_BUST";
     } else if (pScore > dScore) {
-        result = "WIN"; // Spieler hat mehr Punkte
+        result = "WIN";
     } else if (pScore < dScore) {
-        result = "LOSE"; // Dealer hat mehr Punkte
+        result = "LOSE";
     } else {
-        result = "PUSH"; // Unentschieden
+        result = "PUSH";
     }
 
     endRound(result);
 }
 
 function endRound(result) {
-    // Buttons ausblenden
     actionPanel.classList.add('hidden');
     resetPanel.classList.remove('hidden');
 
@@ -378,19 +336,24 @@ function endRound(result) {
     let msg = "";
 
     switch (result) {
+        case "BLACKJACK": // NEU: Blackjack Payout 3:2
+            const winAmount = betMain * 1.5; // 3:2
+            msg = `BLACKJACK! Du gewinnst ${winAmount} €.`;
+            playerMoney += (betMain + winAmount);
+            break;
+
         case "BUST":
             msg = `Überkauft! Du verlierst ${betMain} €.`;
-            // Kein Geld zurück, Einsatz ist schon weg.
             break;
         
         case "DEALER_BUST":
             msg = `Dealer überkauft! Du gewinnst ${betMain} €.`;
-            playerMoney += (betMain * 2); // Einsatz zurück + Gewinn
+            playerMoney += (betMain * 2);
             break;
 
         case "WIN":
             msg = `Gewonnen! Du erhältst ${betMain} €.`;
-            playerMoney += (betMain * 2); // Einsatz zurück + Gewinn
+            playerMoney += (betMain * 2);
             break;
 
         case "LOSE":
@@ -399,10 +362,14 @@ function endRound(result) {
 
         case "PUSH":
             msg = `Unentschieden (Push). Einsatz zurück.`;
-            playerMoney += betMain; // Nur Einsatz zurück
+            playerMoney += betMain;
             break;
     }
 
     messageEl.innerText = msg;
     updateMoneyDisplay();
 }
+
+// Initialer Aufruf
+createDeck();
+shuffleDeck();
