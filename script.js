@@ -315,3 +315,94 @@ function resetGameUI() {
 // Initialer Aufruf um Deck zu haben
 createDeck();
 shuffleDeck();
+/* --- Spiel-Aktionen (Hit & Stand) --- */
+
+function onHit() {
+    // 1. Karte ziehen
+    const newCard = deck.pop();
+    playersHand.push(newCard);
+    
+    // 2. Tisch neu zeichnen (Dealer bleibt verdeckt)
+    renderTable(false);
+
+    // 3. Prüfen ob überkauft (> 21)
+    const score = calculateHandValue(playersHand);
+    if (score > 21) {
+        endRound("BUST"); // Spieler hat verloren
+    }
+}
+
+function onStand() {
+    // Dealer ist dran!
+    // Regel: Dealer muss ziehen, bis er 17 oder mehr hat.
+    let dealerScore = calculateHandValue(dealersHand);
+
+    while (dealerScore < 17) {
+        dealersHand.push(deck.pop());
+        dealerScore = calculateHandValue(dealersHand);
+    }
+
+    // Spiel beenden und Gewinner prüfen
+    renderTable(true); // Jetzt zeigen wir alle Karten des Dealers
+    determineWinner();
+}
+
+/* --- Gewinner Ermittlung --- */
+
+function determineWinner() {
+    const pScore = calculateHandValue(playersHand);
+    const dScore = calculateHandValue(dealersHand);
+
+    let result = "";
+
+    // Szenarien prüfen
+    if (dScore > 21) {
+        result = "DEALER_BUST"; // Dealer überkauft, Spieler gewinnt
+    } else if (pScore > dScore) {
+        result = "WIN"; // Spieler hat mehr Punkte
+    } else if (pScore < dScore) {
+        result = "LOSE"; // Dealer hat mehr Punkte
+    } else {
+        result = "PUSH"; // Unentschieden
+    }
+
+    endRound(result);
+}
+
+function endRound(result) {
+    // Buttons ausblenden
+    actionPanel.classList.add('hidden');
+    resetPanel.classList.remove('hidden');
+
+    const betMain = parseInt(inputMain.value);
+    let msg = "";
+
+    switch (result) {
+        case "BUST":
+            msg = `Überkauft! Du verlierst ${betMain} €.`;
+            // Kein Geld zurück, Einsatz ist schon weg.
+            break;
+        
+        case "DEALER_BUST":
+            msg = `Dealer überkauft! Du gewinnst ${betMain} €.`;
+            playerMoney += (betMain * 2); // Einsatz zurück + Gewinn
+            break;
+
+        case "WIN":
+            msg = `Gewonnen! Du erhältst ${betMain} €.`;
+            playerMoney += (betMain * 2); // Einsatz zurück + Gewinn
+            break;
+
+        case "LOSE":
+            msg = `Verloren. Der Dealer hat gewonnen.`;
+            break;
+
+        case "PUSH":
+            msg = `Unentschieden (Push). Einsatz zurück.`;
+            playerMoney += betMain; // Nur Einsatz zurück
+            break;
+    }
+
+    messageEl.innerText = msg;
+    updateMoneyDisplay();
+}
