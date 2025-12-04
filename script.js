@@ -3,7 +3,7 @@
    ========================================== */
 const suits = ['H', 'D', 'C', 'S'];
 const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-
+let isGameActive = false; // <--- NEU: Verhindert Klicks zur falschen Zeit
 let deck = [];
 let playersHand = [];
 let dealersHand = [];
@@ -205,21 +205,36 @@ async function startRound() {
 }
 
 async function onHit() {
+    // 1. Prüfen: Darf der Spieler überhaupt klicken?
+    if (!isGameActive) return; 
+
+    // 2. Sofort sperren, damit man nicht spammen kann während die Karte fliegt
+    isGameActive = true; 
+
     const card = deck.pop();
     playersHand.push(card);
     addCardToUI(card, playerCardsEl);
     
+    // Kurz warten für Animation
+    await sleep(300);
+
     const score = calculateHandValue(playersHand);
     playerScoreEl.innerText = score;
 
     if (score > 21) {
+        // Spieler ist raus -> Runde beenden
         await sleep(500);
         endRound("BUST");
+    } else {
+        // Spieler darf weitermachen -> Buttons wieder freigeben
+        isGameActive = true; 
     }
 }
 
 async function onStand() {
-    actionPanel.classList.add('hidden');
+   if (!isGameActive) return; // Sicherheits-Check
+    isGameActive = false;      // <--- NEU: Sofort sperren, Dealer ist dran
+   actionPanel.classList.add('hidden');
     messageEl.innerText = "Dealer ist am Zug...";
 
     // Dealer Karte aufdecken
